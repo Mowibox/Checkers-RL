@@ -17,8 +17,8 @@ class CheckersRL:
     Checkers game class (Draughts)
     """
     EMPTY_TILE = 0
-    WHITE_PIECE, WHITE_KING = 1, 2
-    BLACK_PIECE, BLACK_KING = 3, 4
+    WHITE_PAWN, WHITE_KING = 1, 2
+    BLACK_PAWN, BLACK_KING = 3, 4
 
     BOARD_SIZE = 8
     TILE_SIZE = 60
@@ -39,7 +39,7 @@ class CheckersRL:
         pygame.init()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Checkers")
-        self.players = (self.WHITE_PIECE, self.BLACK_PIECE)
+        self.players = (self.WHITE_PAWN, self.BLACK_PAWN)
         self.reset()
 
 
@@ -49,7 +49,7 @@ class CheckersRL:
 
         @param player: The current player
         """
-        return self.WHITE_PIECE if player is self.BLACK_PIECE else self.BLACK_PIECE
+        return self.WHITE_PAWN if player is self.BLACK_PAWN else self.BLACK_PAWN
     
 
     def check_termination(self, state: list) -> tuple[bool, int]:
@@ -59,15 +59,15 @@ class CheckersRL:
         @param state: The current state
         """
         done = False
-        white_pieces = any(piece in (self.WHITE_PIECE, self.WHITE_KING) for row in state for piece in row)
-        black_pieces = any(piece in (self.BLACK_PIECE, self.BLACK_KING) for row in state for piece in row)
+        white_pieces = any(piece in (self.WHITE_PAWN, self.WHITE_KING) for row in state for piece in row)
+        black_pieces = any(piece in (self.BLACK_PAWN, self.BLACK_KING) for row in state for piece in row)
 
         if not white_pieces:
             done = True
-            return done, self.BLACK_PIECE
+            return done, self.BLACK_PAWN
         if not black_pieces:
             done = True
-            return done, self.WHITE_PIECE
+            return done, self.WHITE_PAWN
         
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
@@ -90,7 +90,7 @@ class CheckersRL:
 
         actions = []
         piece = state[row][col]
-        directions = [(1, -1), (1, 1)] if piece == self.BLACK_PIECE else [(-1, -1), (-1, 1)]
+        directions = [(1, -1), (1, 1)] if piece == self.BLACK_PAWN else [(-1, -1), (-1, 1)]
 
         if piece in (self.WHITE_KING, self.BLACK_KING):
             directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
@@ -149,7 +149,7 @@ class CheckersRL:
         """
         if not (0 <= next_row < self.BOARD_SIZE and 0 <= next_col < self.BOARD_SIZE):
             return False
-        opponent_pieces = {self.BLACK_PIECE, self.BLACK_KING} if state[row][col] in (self.WHITE_PIECE, self.WHITE_KING) else {self.WHITE_PIECE, self.WHITE_KING}
+        opponent_pieces = {self.BLACK_PAWN, self.BLACK_KING} if state[row][col] in (self.WHITE_PAWN, self.WHITE_KING) else {self.WHITE_PAWN, self.WHITE_KING}
         return (state[mid_row][mid_col] in opponent_pieces) and (state[next_row][next_col] == self.EMPTY_TILE)
     
 
@@ -173,8 +173,8 @@ class CheckersRL:
             state[mid_row][mid_col] = self.EMPTY_TILE
         
         # King promotion
-        if (piece == self.WHITE_PIECE and new_row == 0) or (piece == self.BLACK_PIECE and new_row == self.BOARD_SIZE-1):
-            state[new_row][new_col] = self.WHITE_KING if piece == self.WHITE_PIECE else self.BLACK_KING
+        if (piece == self.WHITE_PAWN and new_row == 0) or (piece == self.BLACK_PAWN and new_row == self.BOARD_SIZE-1):
+            state[new_row][new_col] = self.WHITE_KING if piece == self.WHITE_PAWN else self.BLACK_KING
 
         player = self.switch_player(player)  
         return state, player
@@ -192,9 +192,9 @@ class CheckersRL:
         self.current_state, self.current_player = self.transition_function(self.current_state, action, self.current_player)
         self.done, winner = self.check_termination(self.current_state)
         reward = 0
-        if winner == self.WHITE_PIECE:
+        if winner == self.WHITE_PAWN:
             reward = 1
-        elif winner == self.BLACK_PIECE:  
+        elif winner == self.BLACK_PAWN:  
             reward = -1
         return self.current_state, reward, self.done, self.current_player
         
@@ -223,7 +223,7 @@ class CheckersRL:
             for col in range(self.BOARD_SIZE):
                 piece = state[row][col]
                 if piece != self.EMPTY_TILE:
-                    piece_color = self.COLOR["White"] if piece in (self.WHITE_PIECE, self.WHITE_KING) else self.COLOR["Black"]
+                    piece_color = self.COLOR["White"] if piece in (self.WHITE_PAWN, self.WHITE_KING) else self.COLOR["Black"]
                     pygame.draw.circle(self.screen, piece_color,
                                        (col*self.TILE_SIZE + self.TILE_SIZE//2,
                                         row*self.TILE_SIZE + self.TILE_SIZE//2),
@@ -236,9 +236,11 @@ class CheckersRL:
         pygame.display.flip()
 
 
-    def reset(self, player=None):
+    def reset(self, player: int=None) -> tuple[list, int]:
         """
         Resets the board to the initial state
+
+        @param player: The current player
         """
 
         self.board = [[self.EMPTY_TILE for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
@@ -246,24 +248,23 @@ class CheckersRL:
             for col in range(row%2, self.BOARD_SIZE+1, 2):
                 if col == 0:
                     continue
-                self.board[row][col-1] = self.BLACK_PIECE
+                self.board[row][col-1] = self.BLACK_PAWN
 
         for row in range(self.BOARD_SIZE//2+1, self.BOARD_SIZE):
             for col in range(row%2, self.BOARD_SIZE+1, 2):
                 if col == 0:
                     continue
-                self.board[row][col-1] = self.WHITE_PIECE
+                self.board[row][col-1] = self.WHITE_PAWN
 
         self.done = False
         self.player = player
         if self.player is None:
-            self.player = self.WHITE_PIECE
+            self.player = self.WHITE_PAWN
 
         self.current_state = deepcopy(self.board)
-        self.current_player = self.WHITE_PIECE
+        self.current_player = self.WHITE_PAWN
 
-        if player == self.BLACK_PIECE:
+        if player == self.BLACK_PAWN:
             self.step(random.choice(self.available_moves))
 
         return self.current_state, self.current_player
-    
