@@ -204,7 +204,7 @@ class CheckersRL:
             reward = -1
         return self.current_state, reward, self.done, self.current_player
 
-    def human_input(self):
+    def human_input(self) -> tuple[list, int, bool, int]:
         """
         Handles the human player inputs
         """
@@ -219,10 +219,11 @@ class CheckersRL:
                 if self.selected_pawn:
                     if (row, col) in self.highlighted_actions:
                         action = (self.selected_pawn, (row, col))
-                        self.step(action)
+                        state, done, reward, player = self.step(action)
+                        self.done = done
                         self.selected_pawn = None
                         self.highlighted_actions = []
-                        return
+                        return state, done, reward, player
                     else:
                         self.selected_pawn = None
                         self.highlighted_actions = []
@@ -230,6 +231,7 @@ class CheckersRL:
                     if self.current_state[row][col] in (self.human_player, self.human_player + 1):
                         self.selected_pawn = (row, col)
                         self.highlighted_actions = self.get_available_moves(self.current_state, row, col)
+        return None, None, self.done, None
 
 
     def render(self, state: list=None):
