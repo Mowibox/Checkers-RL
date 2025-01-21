@@ -42,7 +42,8 @@ def evaluate(env=None, n_episodes=1, render=False, human_play=None):
                 available_moves = env.available_moves()
                 action = random.choice(available_moves)
                 state, reward, done, _ = env.step(action)
-            total_reward += reward
+            if reward is not None:
+                total_reward += reward
         rewards.append(total_reward)
     print(f"Mean reward: {sum(rewards)/len(rewards)}")
 
