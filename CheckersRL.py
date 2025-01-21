@@ -30,16 +30,22 @@ class CheckersRL:
         "White": (255, 255, 255),
         "Black": (0, 0, 0),
         "Yellow": (255, 215, 0),
+        "Green": (0, 255, 0),
     }
 
-    def __init__(self):
+    def __init__(self, human_play: int=None):
         """
         Initialize a Checkers board
+
+        @param human_play: Enables human playing and specifies which player is controlled
         """
         pygame.init()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Checkers")
         self.players = (self.WHITE_PAWN, self.BLACK_PAWN)
+        self.human_player = human_play
+        self.selected_pawn = None
+        self.highlighted_actions = []
         self.reset()
 
 
@@ -59,13 +65,13 @@ class CheckersRL:
         @param state: The current state
         """
         done = False
-        white_pieces = any(piece in (self.WHITE_PAWN, self.WHITE_KING) for row in state for piece in row)
-        black_pieces = any(piece in (self.BLACK_PAWN, self.BLACK_KING) for row in state for piece in row)
+        white_pawns = any(pawn in (self.WHITE_PAWN, self.WHITE_KING) for row in state for pawn in row)
+        black_pawns = any(pawn in (self.BLACK_PAWN, self.BLACK_KING) for row in state for pawn in row)
 
-        if not white_pieces:
+        if not white_pawns:
             done = True
             return done, self.BLACK_PAWN
-        if not black_pieces:
+        if not black_pawns:
             done = True
             return done, self.WHITE_PAWN
         
@@ -81,7 +87,7 @@ class CheckersRL:
 
     def get_available_moves(self, state: list, row: int, col: int) -> list[tuple]:
         """
-        Returns all possible moves for the selected piece
+        Returns all possible moves for the selected pawn
 
         @param state: The current state
         @param row: The provided board row
@@ -89,10 +95,10 @@ class CheckersRL:
         """
 
         actions = []
-        piece = state[row][col]
-        directions = [(1, -1), (1, 1)] if piece == self.BLACK_PAWN else [(-1, -1), (-1, 1)]
+        pawn = state[row][col]
+        directions = [(1, -1), (1, 1)] if pawn == self.BLACK_PAWN else [(-1, -1), (-1, 1)]
 
-        if piece in (self.WHITE_KING, self.BLACK_KING):
+        if pawn in (self.WHITE_KING, self.BLACK_KING):
             directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
         for dr, dc in directions:
@@ -114,8 +120,8 @@ class CheckersRL:
         actions = []
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
-                piece = self.current_state[row][col]
-                if piece == self.current_player or piece == self.current_player + 1:
+                pawn = self.current_state[row][col]
+                if pawn == self.current_player or pawn == self.current_player + 1:
                     possible_moves = self.get_available_moves(self.current_state, row, col)
                     for new_row, new_col in possible_moves:
                         actions.append(((row, col), (new_row, new_col)))
@@ -137,7 +143,7 @@ class CheckersRL:
 
     def is_valid_capture(self, state: list, row: int, col: int, mid_row: int, mid_col: int, next_row: int, next_col: int) -> bool:
         """
-        Checks if a piece capture is valid
+        Checks if a pawn capture is valid
 
         @param state: The current state
         @param row: The board row
@@ -149,13 +155,13 @@ class CheckersRL:
         """
         if not (0 <= next_row < self.BOARD_SIZE and 0 <= next_col < self.BOARD_SIZE):
             return False
-        opponent_pieces = {self.BLACK_PAWN, self.BLACK_KING} if state[row][col] in (self.WHITE_PAWN, self.WHITE_KING) else {self.WHITE_PAWN, self.WHITE_KING}
-        return (state[mid_row][mid_col] in opponent_pieces) and (state[next_row][next_col] == self.EMPTY_TILE)
+        opponent_pawns = {self.BLACK_PAWN, self.BLACK_KING} if state[row][col] in (self.WHITE_PAWN, self.WHITE_KING) else {self.WHITE_PAWN, self.WHITE_KING}
+        return (state[mid_row][mid_col] in opponent_pawns) and (state[next_row][next_col] == self.EMPTY_TILE)
     
 
     def transition_function(self, state: list, action: list[tuple], player: int) -> tuple[list, int]:
         """
-        Applies a move for a piece to the board
+        Applies a move for a pawn to the board
 
         @param state: The current state
         @param action: The chosen action
@@ -163,8 +169,8 @@ class CheckersRL:
         """
         # Normal move
         (row, col), (new_row, new_col) = action
-        piece = state[row][col]
-        state[new_row][new_col] = piece
+        pawn = state[row][col]
+        state[new_row][new_col] = pawn
         state[row][col] = self.EMPTY_TILE
 
         # Capture move
@@ -173,8 +179,8 @@ class CheckersRL:
             state[mid_row][mid_col] = self.EMPTY_TILE
         
         # King promotion
-        if (piece == self.WHITE_PAWN and new_row == 0) or (piece == self.BLACK_PAWN and new_row == self.BOARD_SIZE-1):
-            state[new_row][new_col] = self.WHITE_KING if piece == self.WHITE_PAWN else self.BLACK_KING
+        if (pawn == self.WHITE_PAWN and new_row == 0) or (pawn == self.BLACK_PAWN and new_row == self.BOARD_SIZE-1):
+            state[new_row][new_col] = self.WHITE_KING if pawn == self.WHITE_PAWN else self.BLACK_KING
 
         player = self.switch_player(player)  
         return state, player
@@ -197,7 +203,34 @@ class CheckersRL:
         elif winner == self.BLACK_PAWN:  
             reward = -1
         return self.current_state, reward, self.done, self.current_player
-        
+
+    def human_input(self):
+        """
+        Handles the human player inputs
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and self.current_player == self.human_player:
+                x, y = pygame.mouse.get_pos()
+                row, col = y//self.TILE_SIZE, x//self.TILE_SIZE
+
+                if self.selected_pawn:
+                    if (row, col) in self.highlighted_actions:
+                        action = (self.selected_pawn, (row, col))
+                        self.step(action)
+                        self.selected_pawn = None
+                        self.highlighted_actions = []
+                        return
+                    else:
+                        self.selected_pawn = None
+                        self.highlighted_actions = []
+                else:
+                    if self.current_state[row][col] in (self.human_player, self.human_player + 1):
+                        self.selected_pawn = (row, col)
+                        self.highlighted_actions = self.get_available_moves(self.current_state, row, col)
+
 
     def render(self, state: list=None):
         """
@@ -218,23 +251,29 @@ class CheckersRL:
                                  (col*self.TILE_SIZE, row*self.TILE_SIZE,
                                  self.TILE_SIZE, self.TILE_SIZE))
                 
-        # Pieces
+        # Pawn
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
-                piece = state[row][col]
-                if piece != self.EMPTY_TILE:
-                    piece_color = self.COLOR["White"] if piece in (self.WHITE_PAWN, self.WHITE_KING) else self.COLOR["Black"]
-                    pygame.draw.circle(self.screen, piece_color,
+                pawn = state[row][col]
+                if pawn != self.EMPTY_TILE:
+                    pawn_color = self.COLOR["White"] if pawn in (self.WHITE_PAWN, self.WHITE_KING) else self.COLOR["Black"]
+                    pygame.draw.circle(self.screen, pawn_color,
                                        (col*self.TILE_SIZE + self.TILE_SIZE//2,
                                         row*self.TILE_SIZE + self.TILE_SIZE//2),
                                         self.TILE_SIZE//3)
-                    if piece in (self.WHITE_KING, self.BLACK_KING):
+                    if pawn in (self.WHITE_KING, self.BLACK_KING):
                         pygame.draw.circle(self.screen, self.COLOR["Yellow"],
                                             (col*self.TILE_SIZE + self.TILE_SIZE//2,
                                             row*self.TILE_SIZE + self.TILE_SIZE//2),
                                             self.TILE_SIZE//4, 3)
+        # Highlighted actions
+        if self.highlighted_actions:
+            for row, col in self.highlighted_actions:
+                pygame.draw.rect(self.screen, self.COLOR["Green"],
+                                 (col*self.TILE_SIZE, row*self.TILE_SIZE,
+                                  self.TILE_SIZE, self.TILE_SIZE), 3)
         pygame.display.flip()
-
+        
 
     def reset(self, player: int=None) -> tuple[list, int]:
         """
