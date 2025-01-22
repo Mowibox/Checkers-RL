@@ -239,13 +239,13 @@ class CheckersRL:
             if event.type == pygame.MOUSEBUTTONDOWN and self.current_player == self.human_player:
                 x, y = pygame.mouse.get_pos()
                 row, col = y // self.TILE_SIZE, x // self.TILE_SIZE
-
+                
                 capture_moves = []
-                for row in range(self.BOARD_SIZE):
-                    for col in range(self.BOARD_SIZE):
-                        if self.current_state[row][col] == self.current_player or self.current_state[row][col] == self.current_player + 1:
-                            possible_moves = self.get_available_moves(self.current_state, row, col)
-                            capture_moves += [(row, col, new_r, new_c) for new_r, new_c in possible_moves if abs(new_r - row) == 2]
+                for r in range(self.BOARD_SIZE):
+                    for c in range(self.BOARD_SIZE):
+                        if self.current_state[r][c] == self.current_player or self.current_state[r][c] == self.current_player + 1:
+                            possible_moves = self.get_available_moves(self.current_state, r, c)
+                            capture_moves += [(r, c, new_r, new_c) for new_r, new_c in possible_moves if abs(new_r - r) == 2]
 
                 if capture_moves:
                     if self.selected_pawn:
