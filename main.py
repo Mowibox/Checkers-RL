@@ -7,9 +7,13 @@
     
 """
 # Imports 
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import random
 import argparse
+# from MCTS import *
+from copy import deepcopy
 from CheckersRL import CheckersRL
 
 
@@ -31,7 +35,7 @@ def evaluate(env=None, n_episodes=1, render=False, human_play=None):
     for _ in range(n_episodes):
         total_reward = 0
         done = False
-        state, _ = env.reset()
+        state, player = env.reset()
         while not done:
             if human_play is not None or render:
                 env.render()
@@ -39,6 +43,7 @@ def evaluate(env=None, n_episodes=1, render=False, human_play=None):
             if human_play is not None and env.current_player == human_play:
                 _, reward, done, _ = env.human_input()
             else:
+                # action = mcts(deepcopy(state), player)
                 available_moves = env.available_moves()
                 action = random.choice(available_moves)
                 state, reward, done, _ = env.step(action)

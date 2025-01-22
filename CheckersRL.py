@@ -7,6 +7,9 @@
     
 """
 # Imports
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = ''
+import pygame
 import random
 import pygame
 from copy import deepcopy
@@ -33,19 +36,18 @@ class CheckersRL:
         "Green": (0, 255, 0),
     }
 
-    def __init__(self, human_play: int=None):
+    def __init__(self, human_play: int=None, stalemate_threshold: int=50):
         """
-        Initialize a Checkers board
+        Initializes a Checkers board
 
         @param human_play: Enables human playing and specifies which player is controlled
         """
-        pygame.init()
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Checkers")
+        self.screen = None
         self.players = (self.WHITE_PAWN, self.BLACK_PAWN)
         self.human_player = human_play
         self.selected_pawn = None
         self.highlighted_actions = []
+        self.stalemate_threshold = stalemate_threshold
         self.reset()
 
 
@@ -74,13 +76,18 @@ class CheckersRL:
         if not black_pawns:
             done = True
             return done, self.WHITE_PAWN
+
+        if self.non_capture_action >= self.stalemate_threshold:
+            done = True
+            return done, None
         
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
                 if state[row][col] == self.current_player or state[row][col] == self.current_player + 1:
                     if self.get_available_moves(state, row, col):
                         done = False
-                        return done, None  
+                        return done, None 
+         
         done = True
         return done, self.switch_player(self.current_player)  
     
@@ -117,14 +124,23 @@ class CheckersRL:
         """
         Available moves at current state
         """
-        actions = []
+        moves = []
+        capture_moves = []
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
                 pawn = self.current_state[row][col]
                 if pawn == self.current_player or pawn == self.current_player + 1:
                     possible_moves = self.get_available_moves(self.current_state, row, col)
                     for new_row, new_col in possible_moves:
-                        actions.append(((row, col), (new_row, new_col)))
+                        if abs(new_row - row) == 2:
+                            capture_moves.append(((row, col), (new_row, new_col)))
+                        else:
+                            moves.append(((row, col), (new_row, new_col)))
+        
+        if capture_moves:
+            actions = capture_moves
+        else:
+            actions = moves
         return actions
     
 
@@ -174,15 +190,23 @@ class CheckersRL:
         state[row][col] = self.EMPTY_TILE
 
         # Capture move
+        capture_occured = False
         if abs(new_row - row) == 2:
             mid_row, mid_col = (row + new_row)//2, (col + new_col)//2
             state[mid_row][mid_col] = self.EMPTY_TILE
+            capture_occured = True
         
         # King promotion
         if (pawn == self.WHITE_PAWN and new_row == 0) or (pawn == self.BLACK_PAWN and new_row == self.BOARD_SIZE-1):
             state[new_row][new_col] = self.WHITE_KING if pawn == self.WHITE_PAWN else self.BLACK_KING
 
-        player = self.switch_player(player)  
+        player = self.switch_player(player)
+
+        if not capture_occured:
+            self.non_capture_action += 1
+        else:
+            self.non_capture_action = 0
+
         return state, player
 
     def step(self, action: list[tuple]):
@@ -214,23 +238,48 @@ class CheckersRL:
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN and self.current_player == self.human_player:
                 x, y = pygame.mouse.get_pos()
-                row, col = y//self.TILE_SIZE, x//self.TILE_SIZE
+                row, col = y // self.TILE_SIZE, x // self.TILE_SIZE
 
-                if self.selected_pawn:
-                    if (row, col) in self.highlighted_actions:
-                        action = (self.selected_pawn, (row, col))
-                        state, done, reward, player = self.step(action)
-                        self.done = done
-                        self.selected_pawn = None
-                        self.highlighted_actions = []
-                        return state, done, reward, player
+                capture_moves = []
+                for row in range(self.BOARD_SIZE):
+                    for col in range(self.BOARD_SIZE):
+                        if self.current_state[row][col] == self.current_player or self.current_state[row][col] == self.current_player + 1:
+                            possible_moves = self.get_available_moves(self.current_state, row, col)
+                            capture_moves += [(row, col, new_r, new_c) for new_r, new_c in possible_moves if abs(new_r - row) == 2]
+
+                if capture_moves:
+                    if self.selected_pawn:
+                        if (row, col) in [(new_r, new_c) for _, _, new_r, new_c in capture_moves]:
+                            action = (self.selected_pawn, (row, col))
+                            state, done, reward, player = self.step(action)
+                            self.done = done
+                            self.selected_pawn = None
+                            self.highlighted_actions = []
+                            return state, done, reward, player
+                        else:
+                            self.selected_pawn = None
+                            self.highlighted_actions = []
                     else:
-                        self.selected_pawn = None
-                        self.highlighted_actions = []
+                        if (row, col) in [(r, c) for r, c, _, _ in capture_moves]:
+                            self.selected_pawn = (row, col)
+                            self.highlighted_actions = [(new_r, new_c) for _, _, new_r, new_c in capture_moves]
                 else:
-                    if self.current_state[row][col] in (self.human_player, self.human_player + 1):
-                        self.selected_pawn = (row, col)
-                        self.highlighted_actions = self.get_available_moves(self.current_state, row, col)
+                    if self.selected_pawn:
+                        if (row, col) in self.highlighted_actions:
+                            action = (self.selected_pawn, (row, col))
+                            state, done, reward, player = self.step(action)
+                            self.done = done
+                            self.selected_pawn = None
+                            self.highlighted_actions = []
+                            return state, done, reward, player
+                        else:
+                            self.selected_pawn = None
+                            self.highlighted_actions = []
+                    else:
+                        if self.current_state[row][col] in (self.human_player, self.human_player + 1):
+                            self.selected_pawn = (row, col)
+                            self.highlighted_actions = self.get_available_moves(self.current_state, row, col)
+
         return None, None, self.done, None
 
 
@@ -240,6 +289,11 @@ class CheckersRL:
 
         @param state: The current state
         """
+        if self.screen is None:
+            pygame.init()
+            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+            pygame.display.set_caption("Checkers")
+
         self.screen.fill((0, 0, 0))
 
         if state is None:
@@ -304,6 +358,7 @@ class CheckersRL:
 
         self.current_state = deepcopy(self.board)
         self.current_player = self.WHITE_PAWN
+        self.non_capture_action = 0
 
         if player == self.BLACK_PAWN:
             self.step(random.choice(self.available_moves))
