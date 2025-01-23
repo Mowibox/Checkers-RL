@@ -12,15 +12,15 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import random
 import argparse
-# from MCTS import *
-from copy import deepcopy
+from TDLambda_LVFA import *
 from CheckersRL import CheckersRL
 
 
-def evaluate(env=None, n_episodes=1, render=False, human_play=None):
+def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
     """
     Evaluation function
 
+    @param filename: The model filename
     @param env: The provided CheckersRL environment
     @param n_episodes: The number of episodes
     @param render: Enables rendering
@@ -30,6 +30,8 @@ def evaluate(env=None, n_episodes=1, render=False, human_play=None):
         env = CheckersRL(human_play=human_play)
     else:
         env = CheckersRL()
+
+    # agent = TDLambda_LVFA.load(filename)
 
     rewards = []
     for _ in range(n_episodes):
@@ -43,21 +45,27 @@ def evaluate(env=None, n_episodes=1, render=False, human_play=None):
             if human_play is not None and env.current_player == human_play:
                 _, reward, done, _ = env.human_input()
             else:
-                # action = mcts(deepcopy(state), player)
                 available_moves = env.available_moves()
                 action = random.choice(available_moves)
-                state, reward, done, _ = env.step(action)
+                # action = agent.policy(state)
+                next_state, reward, done, _ = env.step(action)
+                state = next_state
             if reward is not None:
                 total_reward += reward
         rewards.append(total_reward)
     print(f"Mean reward: {sum(rewards)/len(rewards)}")
 
 
-def train():
+def train(filename):
     """
     Training function
+
+    @param filename: The model filename
     """
-    ...
+    env = CheckersRL()
+    agent = TDLambda_LVFA(env)
+    agent.train()
+    agent.save(filename)
 
 
 def main():
@@ -65,20 +73,24 @@ def main():
     Main function
     """
     parser = argparse.ArgumentParser(description='Run training and evaluation')
-    parser.add_argument('--render', action='store_true')
-    parser.add_argument('-t', '--train', action='store_true')
-    parser.add_argument('-e', '--evaluate', action='store_true')
-    parser.add_argument('--human', nargs='?', const='w')
+    parser.add_argument('--render', action='store_true',
+                        help="Enable rendering")
+    parser.add_argument('-t', '--train',
+                        help="Train the RL model")
+    parser.add_argument('-e', '--evaluate',
+                        help="Evaluate the provided RL model")
+    parser.add_argument('--human', nargs='?', const='w',
+                        help="Allows human to play against computer [w, b] (default: w)")
     args = parser.parse_args()
 
-    if args.train:
-        train()
+    if args.train is not None:
+        train(args.train)
     
     if args.evaluate:
         human_play = None
         if args.human:
             human_play = CheckersRL.WHITE_PAWN if args.human == 'w' else CheckersRL.BLACK_PAWN
-        evaluate(render=args.render, human_play=human_play)
+        evaluate(filename=args.evaluate, render=args.render, human_play=human_play)
 
 
 if __name__ == "__main__":

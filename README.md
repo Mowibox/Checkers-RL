@@ -3,6 +3,51 @@ A reinforcement learning agent capable of solving checkers.
 
 ## Overview 
 
+## Code usage
+
+Download the necessary packages:
+```
+pip install -r requirements.txt
+```
+
+Download the repository:
+
+```bash
+git clone https://github.com/Mowibox/CheckersRL.git
+```
+
+Run inside the repository:
+
+    python3 main.py [options]
+
+        usage: main.py [-h] [--render] [-t TRAIN] [-e] [--human [HUMAN]]
+
+        options:
+            -h, --help            show this help message and exit
+            --render              Enable rendering
+            -t TRAIN, --train TRAIN
+                                    Train the RL model
+            -e, --evaluate        Evaluate the provided RL model
+            --human [HUMAN]       Allows human to play against computer [w, b] (default: w)
+
+### Commands examples:
+Train a model named `model.pkl`:
+
+    python main.py --train model.pkl
+
+Evaluate a model
+
+    python main.py --evaluate model.pkl
+
+See the evaluation episode:
+
+    python main.py --train model.pkl --render
+
+Play against the agent (white pawns by default):
+
+    python main.py --train model.pkl --human
+
+
 ## Author 
 [Ousmane THIONGANE](https://github.com/Mowibox)
 
