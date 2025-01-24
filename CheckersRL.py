@@ -41,6 +41,7 @@ class CheckersRL:
         Initializes a Checkers board
 
         @param human_play: Enables human playing and specifies which player is controlled
+        @param stalemate_threshold: Set the maximum number of uncaptured actions before the match is drawn
         """
         self.screen = None
         self.players = (self.WHITE_PAWN, self.BLACK_PAWN)
