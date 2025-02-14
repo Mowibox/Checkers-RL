@@ -3,7 +3,7 @@ A reinforcement learning agent capable of solving checkers.
 
 ## Overview 
 
-This repository proposes a reinforcement learning-based approach to train an agent capable of playing checkers. The goal is to develop a model that can adapt to the game complexity by using some advanced reinfocement learning algorithms. The project provides tools to train, evaluate and visualize the agent performance, as well as to allow human to play against the trained agent. The environment details are specified in the [documentation](https://github.com/Mowibox/Checkers-RL/wiki/Documentation). 
+This repository proposes a reinforcement learning-based approach to train an agent capable of playing checkers. The goal is to develop a model that can adapt to the game complexity by using some advanced reinforcement learning algorithms. The project provides tools to train, evaluate and visualize the agent performance, as well as to allow human to play against the trained agent. The environment details are specified in the [documentation](https://github.com/Mowibox/Checkers-RL/wiki/Documentation). 
 
 ## Code usage
 
