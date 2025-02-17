@@ -61,11 +61,12 @@ class CheckersRL:
         return self.WHITE_PAWN if player is self.BLACK_PAWN else self.BLACK_PAWN
     
 
-    def check_termination(self, state: list) -> tuple[bool, int]:
+    def check_termination(self, state: list, simulation: bool=False) -> tuple[bool, int]:
         """
         Checks if the games is terminated
 
         @param state: The current state
+        @param simulation: If True, the stalemate_threshold is ignored (e.g. for MCTS simulations)
         """
         done = False
         white_pawns = any(pawn in (self.WHITE_PAWN, self.WHITE_KING) for row in state for pawn in row)
@@ -78,9 +79,9 @@ class CheckersRL:
             done = True
             return done, self.WHITE_PAWN
 
-        # if self.non_capture_action >= self.stalemate_threshold:
-            # done = True
-            # return done, None
+        if not simulation and self.non_capture_action >= self.stalemate_threshold:
+            done = True
+            return done, None
         
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
@@ -181,13 +182,14 @@ class CheckersRL:
         return (state[mid_row][mid_col] in opponent_pawns) and (state[next_row][next_col] == self.EMPTY_TILE)
     
 
-    def transition_function(self, state: list, action: list[tuple], player: int) -> tuple[list, int]:
+    def transition_function(self, state: list, action: list[tuple], player: int, simulation: bool=False) -> tuple[list, int]:
         """
         Applies a move for a pawn to the board
 
         @param state: The current state
         @param action: The chosen action
         @param player: The current player
+        @param simulation: If True, the stalemate_threshold is ignored (e.g. for MCTS simulations)
         """
         # Normal move
         (row, col), (new_row, new_col) = action
@@ -208,10 +210,11 @@ class CheckersRL:
 
         player = self.switch_player(player)
 
-        if not capture_occured:
-            self.non_capture_action += 1
-        else:
-            self.non_capture_action = 0
+        if not simulation:
+            if not capture_occured:
+                self.non_capture_action += 1
+            else:
+                self.non_capture_action = 0
 
         return state, player
 

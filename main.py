@@ -46,14 +46,12 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
             
 
             if human_play is not None and env.current_player == human_play:
-                _, reward, done, _ = env.human_input()
+                state, reward, done, player = env.human_input()
             else:
                 available_moves = env.available_moves(state, player)
                 # action = random.choice(available_moves)
                 # action = agent.policy(state)
-                # mcts_env = CheckersRL()
-                action, root = mcts(deepcopy(state), player, env, iters=10)
-                # print(action)
+                action, root = mcts(deepcopy(state), player, env, iters=1000)
                 next_state, reward, done, player = env.step(action)
                 state = next_state
             if reward is not None:

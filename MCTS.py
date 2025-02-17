@@ -26,7 +26,7 @@ class MCTSNode:
         self.untried_actions = env.available_moves(self.state, self.player)
         self.n = 0
         self.w = 0
-        self.is_terminal = env.check_termination(self.state)[0]
+        self.is_terminal = env.check_termination(self.state, simulation=True)[0]
         self.c = c
 
 
@@ -44,7 +44,7 @@ class MCTSNode:
         the resulting state (also add it to the children) and returns it.
         """
         action = self.untried_actions.pop()
-        next_state, next_player = self.env.transition_function(deepcopy(self.state), action, self.player)
+        next_state, next_player = self.env.transition_function(deepcopy(self.state), action, self.player, simulation=True)
 
         child_node = MCTSNode(next_state, next_player, self.env, self.c, parent=self, action=action)
         self.children.append(child_node)
@@ -59,15 +59,15 @@ class MCTSNode:
         env = self.env
         state = deepcopy(self.state)
         player = self.player
-        done, result = self.env.check_termination(state)
+        done, result = self.env.check_termination(state, simulation=True)
 
         while not done:
             possible_actions = env.available_moves(state, player)
             if not possible_actions:
                 break
             action = random.choice(possible_actions)
-            state, player = env.transition_function(deepcopy(state), action, player)
-            done, result = env.check_termination(state)
+            state, player = env.transition_function(deepcopy(state), action, player, simulation=True)
+            done, result = env.check_termination(state, simulation=True)
 
         return result
     
