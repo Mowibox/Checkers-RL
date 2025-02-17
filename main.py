@@ -12,6 +12,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import random
 import argparse
+from MCTS import *
 from TDLambda_LVFA import *
 from CheckersRL import CheckersRL
 
@@ -23,7 +24,7 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
     @param filename: The model filename
     @param env: The provided CheckersRL environment
     @param n_episodes: The number of episodes
-    @param render: Enables rendering
+    @param render: Enable rendering
     @param human_play: Enables human player 
     """
     if human_play is not None:
@@ -41,14 +42,19 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
         while not done:
             if human_play is not None or render:
                 env.render()
-                pygame.time.delay(200)
+                pygame.time.delay(300)
+            
+
             if human_play is not None and env.current_player == human_play:
                 _, reward, done, _ = env.human_input()
             else:
-                available_moves = env.available_moves()
-                action = random.choice(available_moves)
+                available_moves = env.available_moves(state, player)
+                # action = random.choice(available_moves)
                 # action = agent.policy(state)
-                next_state, reward, done, _ = env.step(action)
+                # mcts_env = CheckersRL()
+                action, root = mcts(deepcopy(state), player, env, iters=10)
+                # print(action)
+                next_state, reward, done, player = env.step(action)
                 state = next_state
             if reward is not None:
                 total_reward += reward

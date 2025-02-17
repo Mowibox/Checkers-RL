@@ -54,7 +54,7 @@ class CheckersRL:
 
     def switch_player(self, player: int) -> int:
         """
-        Gives the opponent of the currrent player
+        Returns the opponent of the currrent player
 
         @param player: The current player
         """
@@ -78,9 +78,9 @@ class CheckersRL:
             done = True
             return done, self.WHITE_PAWN
 
-        if self.non_capture_action >= self.stalemate_threshold:
-            done = True
-            return done, None
+        # if self.non_capture_action >= self.stalemate_threshold:
+            # done = True
+            # return done, None
         
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
@@ -121,17 +121,22 @@ class CheckersRL:
         return actions
     
 
-    def available_moves(self) -> list[tuple]:
+    def available_moves(self, state, player) -> list[tuple]:
         """
         Available moves at current state
         """
+        if state is None:
+            state = self.current_state
+        if player is None:
+            player = self.current_player
+
         moves = []
         capture_moves = []
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
-                pawn = self.current_state[row][col]
-                if pawn == self.current_player or pawn == self.current_player + 1:
-                    possible_moves = self.get_available_moves(self.current_state, row, col)
+                pawn = state[row][col]
+                if pawn == player or pawn == player + 1:
+                    possible_moves = self.get_available_moves(state, row, col)
                     for new_row, new_col in possible_moves:
                         if abs(new_row - row) == 2:
                             capture_moves.append(((row, col), (new_row, new_col)))
@@ -216,16 +221,15 @@ class CheckersRL:
 
         @param action: The chosen action
         """
-
         self.done, winner = self.check_termination(self.current_state)
         assert self.done == False
 
         self.current_state, self.current_player = self.transition_function(self.current_state, action, self.current_player)
         self.done, winner = self.check_termination(self.current_state)
         reward = 0
-        if winner == self.WHITE_PAWN:
+        if winner == self.player:
             reward = 1
-        elif winner == self.BLACK_PAWN:  
+        elif winner == self.switch_player(self.player):  
             reward = -1
         return self.current_state, reward, self.done, self.current_player
 
@@ -237,33 +241,45 @@ class CheckersRL:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
             if event.type == pygame.MOUSEBUTTONDOWN and self.current_player == self.human_player:
                 x, y = pygame.mouse.get_pos()
                 row, col = y // self.TILE_SIZE, x // self.TILE_SIZE
                 
-                capture_moves = []
+                capture_moves_dict = {}
                 for r in range(self.BOARD_SIZE):
                     for c in range(self.BOARD_SIZE):
                         if self.current_state[r][c] == self.current_player or self.current_state[r][c] == self.current_player + 1:
                             possible_moves = self.get_available_moves(self.current_state, r, c)
-                            capture_moves += [(r, c, new_r, new_c) for new_r, new_c in possible_moves if abs(new_r - r) == 2]
+                            capture_moves = [(new_r, new_c) for (new_r, new_c) in possible_moves if abs(new_r - r) == 2]
+                            if capture_moves:
+                                capture_moves_dict[(r,c)] = capture_moves
 
-                if capture_moves:
+                if capture_moves_dict:
                     if self.selected_pawn:
-                        if (row, col) in [(new_r, new_c) for _, _, new_r, new_c in capture_moves]:
-                            action = (self.selected_pawn, (row, col))
-                            state, done, reward, player = self.step(action)
-                            self.done = done
-                            self.selected_pawn = None
-                            self.highlighted_actions = []
-                            return state, done, reward, player
+                        if self.selected_pawn in capture_moves_dict:
+                            self.highlighted_actions = capture_moves_dict[self.selected_pawn]
+                            if (row, col) in self.highlighted_actions:
+                                action = (self.selected_pawn, (row, col))
+                                state, done, reward, player = self.step(action)
+                                self.done = done
+                                self.selected_pawn = None
+                                self.highlighted_actions = []
+                                return state, done, reward, player
+                            else:
+                                self.selected_pawn = None
+                                self.highlighted_actions = []
                         else:
                             self.selected_pawn = None
                             self.highlighted_actions = []
                     else:
-                        if (row, col) in [(r, c) for r, c, _, _ in capture_moves]:
+                        if (row, col) in capture_moves_dict:
                             self.selected_pawn = (row, col)
-                            self.highlighted_actions = [(new_r, new_c) for _, _, new_r, new_c in capture_moves]
+                            self.highlighted_actions = capture_moves_dict[(row, col)]
+                        else:
+                            self.selected_pawn = None
+                            self.highlighted_actions = []
+
                 else:
                     if self.selected_pawn:
                         if (row, col) in self.highlighted_actions:
@@ -362,6 +378,6 @@ class CheckersRL:
         self.non_capture_action = 0
 
         if player == self.BLACK_PAWN:
-            self.step(random.choice(self.available_moves))
+            self.step(random.choice(self.available_moves(self.current_state, self.current_player)))
 
         return self.current_state, self.current_player
