@@ -32,7 +32,7 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
     else:
         env = CheckersRL()
 
-    # agent = TDLambda_LVFA.load(filename)
+    agent = TDLambda_LVFA.load(filename)
 
     rewards = []
     for _ in range(n_episodes):
@@ -50,8 +50,8 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
             else:
                 available_moves = env.available_moves(state, player)
                 # action = random.choice(available_moves)
-                # action = agent.policy(state)
-                action, root = mcts(deepcopy(state), player, env, iters=1000)
+                # action, root = mcts(deepcopy(state), player, env, iters=1000)
+                action = agent.policy(state, player)
                 next_state, reward, done, player = env.step(action)
                 state = next_state
             if reward is not None:
