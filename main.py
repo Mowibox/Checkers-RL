@@ -17,11 +17,11 @@ from TDLambda_LVFA import *
 from CheckersRL import CheckersRL
 
 
-def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
+def evaluate(evaluation_mode, env=None, n_episodes=1, render=False, human_play=None):
     """
     Evaluation function
 
-    @param filename: The model filename
+    @param evaluation_mode: The RL agent ("random", "mcts" or the .pkl model filename)
     @param env: The provided CheckersRL environment
     @param n_episodes: The number of episodes
     @param render: Enable rendering
@@ -32,7 +32,12 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
     else:
         env = CheckersRL()
 
-    agent = TDLambda_LVFA.load(filename)
+    
+    mode = evaluation_mode.lower()
+    agent = None
+
+    if mode not in ["random", "mcts"]:
+        agent = TDLambda_LVFA.load(evaluation_mode)
 
     rewards = []
     for _ in range(n_episodes):
@@ -49,9 +54,12 @@ def evaluate(filename, env=None, n_episodes=1, render=False, human_play=None):
                 state, reward, done, player = env.human_input()
             else:
                 available_moves = env.available_moves(state, player)
-                # action = random.choice(available_moves)
-                # action, root = mcts(deepcopy(state), player, env, iters=1000)
-                action = agent.policy(state, player)
+                if mode == "random":
+                    action = random.choice(available_moves)
+                elif mode == "mcts":
+                    action, root = mcts(deepcopy(state), player, env, iters=1000)
+                else:
+                    action = agent.policy(state, player)
                 next_state, reward, done, player = env.step(action)
                 state = next_state
             if reward is not None:
@@ -82,7 +90,7 @@ def main():
     parser.add_argument('-t', '--train',
                         help="Train the RL model")
     parser.add_argument('-e', '--evaluate',
-                        help="Evaluate the provided RL model")
+                        help="Evaluate the provided RL model (Use 'random'/'mcts'/'model filepath')")
     parser.add_argument('--human', nargs='?', const='w',
                         help="Allows human to play against computer [w, b] (default: w)")
     args = parser.parse_args()
@@ -94,7 +102,7 @@ def main():
         human_play = None
         if args.human:
             human_play = CheckersRL.WHITE_PAWN if args.human == 'w' else CheckersRL.BLACK_PAWN
-        evaluate(filename=args.evaluate, render=args.render, human_play=human_play)
+        evaluate(evaluation_mode=args.evaluate, render=args.render, human_play=human_play)
 
 
 if __name__ == "__main__":

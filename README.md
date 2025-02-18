@@ -29,25 +29,35 @@ Run inside the repository:
             --render              Enable rendering
             -t TRAIN, --train TRAIN
                                     Train the RL model
-            -e, --evaluate        Evaluate the provided RL model
+            -e EVALUATE, --evaluate EVALUATE
+                                    Evaluate the provided RL model (Use 'random'/'mcts'/'model
+                                    filepath')
             --human [HUMAN]       Allows human to play against computer [w, b] (default: w)
 
 ### Commands examples:
-Train a model named `model.pkl`:
+Train a TD(λ) LVFA model named `model.pkl`:
 
     python main.py --train model.pkl
 
-Evaluate a model
+Evaluate a random agent: 
+
+    python main.py --evaluate random
+
+Evaluate a TD(λ) LVFA model: 
+
+    python main.py --evaluate model.pkl
+
+Evaluate a MCTS agent: 
 
     python main.py --evaluate model.pkl
 
 See the evaluation episode:
 
-    python main.py --train model.pkl --render
+    python main.py --evaluate model.pkl --render
 
 Play against the agent (white pawns by default):
 
-    python main.py --train model.pkl --human
+    python main.py --evaluate model.pkl --human
 
 
 ## Author 
