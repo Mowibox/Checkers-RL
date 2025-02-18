@@ -122,7 +122,7 @@ class CheckersRL:
         return actions
     
 
-    def available_moves(self, state, player) -> list[tuple]:
+    def available_moves(self, state: list, player: int) -> list[tuple]:
         """
         Available moves at current state
         """

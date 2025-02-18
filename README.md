@@ -35,7 +35,7 @@ Run inside the repository:
             --human [HUMAN]       Allows human to play against computer [w, b] (default: w)
 
 ### Commands examples:
-Train a TD(λ) LVFA model named `model.pkl`:
+Train a TD(λ) Linear Value Function Approximation model named `model.pkl`:
 
     python main.py --train model.pkl
 
@@ -47,9 +47,9 @@ Evaluate a TD(λ) LVFA model:
 
     python main.py --evaluate model.pkl
 
-Evaluate a MCTS agent: 
+Evaluate a Monte-Carlo Tree Search (MCTS) agent: 
 
-    python main.py --evaluate model.pkl
+    python main.py --evaluate mcts
 
 See the evaluation episode:
 
