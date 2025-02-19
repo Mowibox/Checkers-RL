@@ -57,7 +57,7 @@ def evaluate(evaluation_mode, env=None, n_episodes=1, render=False, human_play=N
                 if mode == "random":
                     action = random.choice(available_moves)
                 elif mode == "mcts":
-                    action, root = mcts(deepcopy(state), player, env, iters=1000)
+                    action, root = mcts(deepcopy(state), player, env, iters=500)
                 else:
                     action = agent.policy(state, player)
                 next_state, reward, done, player = env.step(action)

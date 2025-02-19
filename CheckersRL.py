@@ -36,7 +36,7 @@ class CheckersRL:
         "Green": (0, 255, 0),
     }
 
-    def __init__(self, human_play: int=None, stalemate_threshold: int=50):
+    def __init__(self, human_play: int=None, stalemate_threshold: int=25):
         """
         Initializes a Checkers board
 
@@ -217,6 +217,7 @@ class CheckersRL:
                 self.non_capture_action = 0
 
         return state, player
+    
 
     def step(self, action: list[tuple]):
         """
@@ -235,7 +236,8 @@ class CheckersRL:
         elif winner == self.switch_player(self.player):  
             reward = -1
         return self.current_state, reward, self.done, self.current_player
-
+    
+    
     def human_input(self) -> tuple[list, int, bool, int]:
         """
         Handles the human player inputs
