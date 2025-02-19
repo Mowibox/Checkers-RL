@@ -17,6 +17,16 @@ class MCTSNode:
     Monte-Carlo Tree Search Node
     """
     def __init__(self, state, player, env, c, parent=None, action=None):
+        """
+        Initializes the MCTS node
+
+        @param state: The provided state
+        @param player: The current player
+        @param env: The CheckersRL environment
+        @param c: The exploration parameter
+        @param parent: The parent node
+        @param action: The provided action
+        """
         self.state = state
         self.player = player
         self.env = env
