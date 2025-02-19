@@ -13,6 +13,7 @@ import pygame
 import random
 import pygame
 from copy import deepcopy
+from CheckersRLFeaturesEncoder import CheckersRLFeaturesEncoder
 
 
 class CheckersRL:
@@ -50,6 +51,7 @@ class CheckersRL:
         self.highlighted_actions = []
         self.stalemate_threshold = stalemate_threshold
         self.reset()
+        self.encoder = CheckersRLFeaturesEncoder(self)
 
 
     def switch_player(self, player: int) -> int:
@@ -228,14 +230,80 @@ class CheckersRL:
         self.done, winner = self.check_termination(self.current_state)
         assert self.done == False
 
+        prev_state = deepcopy(self.current_state)
+
         self.current_state, self.current_player = self.transition_function(self.current_state, action, self.current_player)
         self.done, winner = self.check_termination(self.current_state)
         reward = 0
         if winner == self.player:
-            reward = 1
+            reward = 250
         elif winner == self.switch_player(self.player):  
-            reward = -1
+            reward = -250
+
+        reward += self.compute_intermediate_reward(prev_state, self.current_state, action)
         return self.current_state, reward, self.done, self.current_player
+
+    def compute_intermediate_reward(self, prev_state: list, new_state: list, action: list[tuple]) -> float:
+        """
+        Computes an intermediate reward based on the transition between two states
+
+        @param prev_state: The state before the action
+        @param new_state: The state after the action
+        @param action: The chosen action
+        """
+        reward = 0.0
+        player = self.player
+        opponent = self.switch_player(self.player)
+
+        # Reward for pawn advantage
+        prev_n_player = sum(1 for row in prev_state for tile in row if tile == self.encoder.pawns_for(player)[0])
+        + sum(2 for row in prev_state for tile in row if tile == self.encoder.pawns_for(player)[1])
+        prev_n_opp = sum(1 for row in prev_state for tile in row if tile == self.encoder.pawns_for(opponent)[0])
+        + sum(2 for row in prev_state for tile in row if tile == self.encoder.pawns_for(opponent)[1])
+        new_n_player = sum(1 for row in new_state for tile in row if tile == self.encoder.pawns_for(player)[0])
+        + sum(2 for row in new_state for tile in row if tile == self.encoder.pawns_for(player)[1])
+        new_n_opp = sum(1 for row in new_state for tile in row if tile == self.encoder.pawns_for(opponent)[0])
+        + sum(2 for row in new_state for tile in row if tile == self.encoder.pawns_for(opponent)[1])
+        prev_advantage = prev_n_player - prev_n_opp
+        new_advantage = new_n_player - new_n_opp
+        reward += 0.5*(new_advantage - prev_advantage)
+
+        # Reward for having less pawns threatened by the opponent's pawns
+        prev_threat = self.encoder.threatened_pawns(prev_state, player)
+        new_threat = self.encoder.threatened_pawns(new_state, player)
+        reward += 0.05*(prev_threat - new_threat)
+
+        # Reward for having available capture moves
+        prev_capture = self.encoder.capture_moves(prev_state, player)
+        new_capture = self.encoder.capture_moves(new_state, player)
+        reward += 0.05*(new_capture - prev_capture)
+
+        # Reward for aligned pawns
+        prev_dd = self.encoder.double_diagonal(prev_state, player)
+        new_dd = self.encoder.double_diagonal(new_state, player)
+        reward += 0.1*(new_dd - prev_dd)
+
+        # Reward for having pawns on the last row
+        if player == self.WHITE_PAWN:
+            prev_back_count = sum(1 for tile in prev_state[-1] if tile == self.WHITE_PAWN)
+            new_back_count = sum(1 for tile in new_state[-1] if tile == self.WHITE_PAWN)
+        else:
+            prev_back_count = sum(1 for tile in prev_state[0] if tile == self.BLACK_PAWN)
+            new_back_count = sum(1 for tile in new_state[0] if tile == self.BLACK_PAWN)
+            
+        reward += 0.005*new_back_count - 0.005*(prev_back_count - new_back_count)
+
+        # Reward for controlling the center
+        prev_center = self.encoder.center_pawns(prev_state, player)
+        new_center = self.encoder.center_pawns(new_state, player)
+        reward += 0.2*(new_center - prev_center)
+
+        # Reward for controlling the center with kings
+        prev_kcenter = self.encoder.center_pawns(prev_state, player, king=True)
+        new_kcenter = self.encoder.center_pawns(new_state, player, king=True)
+        reward += 0.2*(new_kcenter - prev_kcenter)
+
+        return reward
     
     
     def human_input(self) -> tuple[list, int, bool, int]:

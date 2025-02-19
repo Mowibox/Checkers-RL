@@ -21,7 +21,7 @@ class TDLambda_LVFA:
     TD(λ) Linear Value function Approximation class
     """
     def __init__(self, env, feature_encoder_cls=CheckersRLFeaturesEncoder, alpha=0.01, alpha_decay=1,
-                 gamma=0.9999, epsilon=0.3, epsilon_decay=0.995, final_epsilon=0.2, lambda_=0.9):
+                 gamma=0.99999, epsilon=0.5, epsilon_decay=0.995, final_epsilon=0.2, lambda_=0.9):
         """
         Initializes the TD(λ) Linear Value Function Approximation
 
@@ -84,15 +84,11 @@ class TDLambda_LVFA:
         """
         s_feats = self.feature_encoder.encode(s, self.agent_mark)
         Vs = np.dot(self.weights, s_feats)
-
-        if next_player == self.agent_mark:
-            Vs_prime = np.dot(self.weights, self.feature_encoder.encode(s_prime, self.agent_mark))
-        else:
-            Vs_prime = -np.dot(self.weights, self.feature_encoder.encode(s_prime, self.agent_mark))
+        Vs_prime = np.dot(self.weights, self.feature_encoder.encode(s_prime, self.agent_mark))
 
         delta = reward + (1-done)*self.gamma*Vs_prime - Vs
         self.traces = self.gamma*self.lambda_*self.traces + s_feats
-        self.weights += self.alpha*delta*self.traces
+        self.weights -= self.alpha*delta*self.traces
     
     def update_alpha_epsilon(self):
         """
@@ -140,7 +136,7 @@ class TDLambda_LVFA:
         return self.policy(state, current_player)
 
 
-    def train(self, episodes: int=1000):
+    def train(self, episodes: int=500):
         """
         Training function
 

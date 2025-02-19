@@ -1,24 +1,22 @@
 """
 @file        CheckersRLFeaturesEncoder.py
 @author      Mowibox (Ousmane THIONGANE)
-@brief       Features Encoder for the CheckersRL environment
+@brief       Features Encoder for the self.env.CheckersRL environment
 @version     1.0
 @date        2025-02-18
 """
 # Imports
 import numpy as np
-from CheckersRL import CheckersRL
-
 
 class CheckersRLFeaturesEncoder:
     """
-    Features Encoder for the CheckersRL class
+    Features Encoder for the self.env.CheckersRL class
     """
-    def __init__(self, env: CheckersRL):
+    def __init__(self, env):
         """
         Initializes the feature encoder
 
-        @param env: the CheckersRL environment
+        @param env: the self.env.CheckersRL environment
         """
         self.env = env
         self.feature_sizes = {
@@ -35,7 +33,6 @@ class CheckersRLFeaturesEncoder:
             "DoubleDiagonal": 4,
             "DiagonalMoment": 3,
             "KingCentreControl": 3,
-            "Threat": 3,
             "Taken": 3,
         }
         self.feature_size = sum(self.feature_sizes.values())
@@ -110,10 +107,6 @@ class CheckersRLFeaturesEncoder:
         diagonal_moment = self.diagonal_movement(state, player)
         features.append(self.normalize(diagonal_moment, 0, self.n_pawns, self.feature_sizes["DiagonalMoment"]))
 
-        # == F14: Threat ==
-        opp_threat = self.threatened_pawns(state, self.opponent(player))
-        features.append(self.normalize(opp_threat, 0, self.n_pawns, self.feature_sizes["Threat"]))
-
         # == F15: Taken ==
         taken = self.n_pawns - n_player
         features.append(self.normalize(taken, 0, self.n_pawns, self.feature_sizes["Taken"]))
@@ -139,7 +132,7 @@ class CheckersRLFeaturesEncoder:
 
         @param player: The current player
         """
-        return [CheckersRL.WHITE_PAWN, CheckersRL.WHITE_KING] if player == CheckersRL.WHITE_PAWN else [CheckersRL.BLACK_PAWN, CheckersRL.BLACK_KING]
+        return [self.env.WHITE_PAWN, self.env.WHITE_KING] if player == self.env.WHITE_PAWN else [self.env.BLACK_PAWN, self.env.BLACK_KING]
 
     def opponent(self, player: int) -> int: 
         """
@@ -147,7 +140,7 @@ class CheckersRLFeaturesEncoder:
 
         @param player: The current player
         """
-        return CheckersRL.WHITE_PAWN if player == CheckersRL.BLACK_PAWN else CheckersRL.BLACK_PAWN
+        return self.env.WHITE_PAWN if player == self.env.BLACK_PAWN else self.env.BLACK_PAWN
     
     def threatened_pawns(self, state: list, player: int) -> int:
         """
