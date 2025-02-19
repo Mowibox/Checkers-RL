@@ -266,22 +266,22 @@ class CheckersRL:
         + sum(2 for row in new_state for tile in row if tile == self.encoder.pawns_for(opponent)[1])
         prev_advantage = prev_n_player - prev_n_opp
         new_advantage = new_n_player - new_n_opp
-        reward += 0.5*(new_advantage - prev_advantage)
+        reward += 8*(new_advantage - prev_advantage)
 
         # Reward for having less pawns threatened by the opponent's pawns
         prev_threat = self.encoder.threatened_pawns(prev_state, player)
         new_threat = self.encoder.threatened_pawns(new_state, player)
-        reward += 0.05*(prev_threat - new_threat)
+        reward += 10*(prev_threat - new_threat)
 
         # Reward for having available capture moves
         prev_capture = self.encoder.capture_moves(prev_state, player)
         new_capture = self.encoder.capture_moves(new_state, player)
-        reward += 0.05*(new_capture - prev_capture)
+        reward += 3*(new_capture - prev_capture)
 
         # Reward for aligned pawns
         prev_dd = self.encoder.double_diagonal(prev_state, player)
         new_dd = self.encoder.double_diagonal(new_state, player)
-        reward += 0.1*(new_dd - prev_dd)
+        reward += 0.5*(new_dd - prev_dd)
 
         # Reward for having pawns on the last row
         if player == self.WHITE_PAWN:
@@ -291,17 +291,17 @@ class CheckersRL:
             prev_back_count = sum(1 for tile in prev_state[0] if tile == self.BLACK_PAWN)
             new_back_count = sum(1 for tile in new_state[0] if tile == self.BLACK_PAWN)
             
-        reward += 0.005*new_back_count - 0.005*(prev_back_count - new_back_count)
+        reward += 0.05*new_back_count - 0.05*(prev_back_count - new_back_count)
 
         # Reward for controlling the center
         prev_center = self.encoder.center_pawns(prev_state, player)
         new_center = self.encoder.center_pawns(new_state, player)
-        reward += 0.2*(new_center - prev_center)
+        reward += 15*(new_center - prev_center)
 
         # Reward for controlling the center with kings
         prev_kcenter = self.encoder.center_pawns(prev_state, player, king=True)
         new_kcenter = self.encoder.center_pawns(new_state, player, king=True)
-        reward += 0.2*(new_kcenter - prev_kcenter)
+        reward += 15*(new_kcenter - prev_kcenter)
 
         return reward
     
