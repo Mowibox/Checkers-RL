@@ -136,7 +136,7 @@ class TDLambda_LVFA:
         return self.policy(state, current_player)
 
 
-    def train(self, episodes: int=500):
+    def train(self, episodes: int=300):
         """
         Training function
 
@@ -160,7 +160,8 @@ class TDLambda_LVFA:
 
             self.update_alpha_epsilon()
             if episode % 20 == 0:
-                print(episode, self.evaluate(), self.epsilon, self.alpha)
+                print(episode, round(self.evaluate(), 4), 
+                      round(self.epsilon, 4), round(self.alpha, 4))
 
     def evaluate(self, episodes: int=10) -> float:
         """
