@@ -33,8 +33,9 @@ class CheckersRL:
         "Dark": (210, 140, 70),
         "White": (255, 255, 255),
         "Black": (0, 0, 0),
-        "Yellow": (255, 215, 0),
         "Green": (0, 255, 0),
+        "Flare": (255, 99, 49),
+        "Bolt": (0, 198, 255),
     }
 
     def __init__(self, human_play: int=None, stalemate_threshold: int=25):
@@ -407,8 +408,13 @@ class CheckersRL:
                                        (col*self.TILE_SIZE + self.TILE_SIZE//2,
                                         row*self.TILE_SIZE + self.TILE_SIZE//2),
                                         self.TILE_SIZE//3)
-                    if pawn in (self.WHITE_KING, self.BLACK_KING):
-                        pygame.draw.circle(self.screen, self.COLOR["Yellow"],
+                    if pawn == self.WHITE_KING:
+                        pygame.draw.circle(self.screen, self.COLOR["Flare"],
+                                            (col*self.TILE_SIZE + self.TILE_SIZE//2,
+                                            row*self.TILE_SIZE + self.TILE_SIZE//2),
+                                            self.TILE_SIZE//4, 3)
+                    if pawn == self.BLACK_KING:
+                        pygame.draw.circle(self.screen, self.COLOR["Bolt"],
                                             (col*self.TILE_SIZE + self.TILE_SIZE//2,
                                             row*self.TILE_SIZE + self.TILE_SIZE//2),
                                             self.TILE_SIZE//4, 3)
