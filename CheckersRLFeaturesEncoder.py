@@ -128,7 +128,7 @@ class CheckersRLFeaturesEncoder:
     
     def pawns_for(self, player: int) -> list[int, int]:
         """
-        Returns the pieces of the provided player
+        Returns the pawns of the provided player
 
         @param player: The current player
         """
@@ -244,7 +244,7 @@ class CheckersRLFeaturesEncoder:
         
     def double_diagonal(self, state: list, player: int) -> int:
         """
-        Returns the number of times two of a player's pieces are aligned diagonally
+        Returns the number of times two of a player's pawns are aligned diagonally
 
         @param state: The provided state
         @param player: The current player
