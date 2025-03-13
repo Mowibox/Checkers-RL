@@ -38,7 +38,7 @@ class CheckersRL:
         "Bolt": (0, 198, 255),
     }
 
-    def __init__(self, human_play: int=None, stalemate_threshold: int=25):
+    def __init__(self, human_play: int=None, stalemate_threshold: int=32):
         """
         Initializes a Checkers board
 
