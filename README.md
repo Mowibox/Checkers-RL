@@ -34,7 +34,7 @@ This repository proposes a reinforcement learning-based approach to train an age
 
 ## Documentation
 
-The environment details are specified in the [documentation wiki](https://github.com/Mowibox/Checkers-RL/wiki/Documentation). A short presentation of the RL approaches used is also available in the ['docs/'](https://github.com/Mowibox/Checkers-RL/docs) folder.
+The environment details are specified in the [documentation wiki](https://github.com/Mowibox/Checkers-RL/wiki/Documentation). A short presentation of the RL approaches used is also available in the ['docs/'](https://github.com/Mowibox/Checkers-RL/tree/main/docs) folder.
 
 ## How to use
 
