@@ -110,8 +110,8 @@ python main.py --evaluate model.pkl --human
 
 Contributions are always welcome!
 
-* Report Issues: Found a bug or have a feature request? Create a new issue [here.](https://github.com/Mowibox/Checkers-RL/issues/new/choose)
-* Fix Bugs & Add Features: Find out where you can lend a hand by checking out [existing issues.](https://github.com/Mowibox/Checkers-RL/issues)
+* **Report Issues:** Found a bug or have a feature request? Create a new issue [here.](https://github.com/Mowibox/Checkers-RL/issues/new/choose)
+* **Fix Bugs & Add Features:** Find out where you can lend a hand by checking out [existing issues.](https://github.com/Mowibox/Checkers-RL/issues)
 
 ## References
 
