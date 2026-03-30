@@ -30,7 +30,10 @@ This repository proposes a reinforcement learning-based approach to train an age
 
 ## Author
 
-[Ousmane THIONGANE](https://mowibox.github.io)
+| |
+| :---: |
+| <img src="https://github.com/Mowibox.png" width="100"> |
+| [**Ousmane THIONGANE**](https://mowibox.github.io) |
 
 ## Documentation
 
