@@ -11,7 +11,6 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = ''
 import pygame
 import random
-import pygame
 from copy import deepcopy
 from CheckersRLFeaturesEncoder import CheckersRLFeaturesEncoder
 
@@ -307,7 +306,7 @@ class CheckersRL:
         return reward
     
     
-    def human_input(self) -> tuple[list, int, bool, int]:
+    def human_input(self) -> tuple[list, float, bool, int]:
         """
         Handles the human player inputs
         """
