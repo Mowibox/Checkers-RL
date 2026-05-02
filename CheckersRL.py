@@ -53,7 +53,7 @@ class CheckersRL:
         self._position_history = defaultdict(int)
         self.reset()
 
-    def reset(self, player: int) -> tuple[list, int]:
+    def reset(self, player: int = None) -> tuple[list, int]:
         """
         Reset the board to the initial state
 
@@ -684,7 +684,7 @@ class CheckersRL:
                     else:
                         self.selected_pawn    = None
                         self.highlighted_actions = []
-                        
+
                 if self.current_state[row][col] != self.EMPTY_TILE and self._is_own(
                     self.current_state[row][col], self.human_player
                 ):

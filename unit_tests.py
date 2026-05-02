@@ -1,3 +1,12 @@
+"""
+    @file        unit_tests.py
+    @author      Mowibox (Ousmane THIONGANE)
+    @brief       Unit tests for CheckersRL environment
+    @version     1.0
+    @date        2026-05-03
+    
+"""
+# Imports 
 import pytest
 from copy import deepcopy
 from CheckersRL import CheckersRL
